@@ -1,24 +1,21 @@
-from flask import request, jsonify
+from flask_restful import Resource
 from app import db
 from models import Dock
+from flask import request
 
+class DockResource(Resource):
+    def post(self):
+        """Create a new dock"""
+        data = request.get_json()
+        hubcode = data.get("hubcode")
+        dock_no = data.get("dock_no")
+        docking_status = data.get("docking_status")
 
-def get_all_docks():
-    docks = Dock.query.all()
-    return jsonify([dock.to_dict() for dock in docks]), 200
+        # Create a new Dock instance
+        dock = Dock(hubcode=hubcode, dock_no=dock_no, docking_status=docking_status)
 
+        # Add to the database and commit
+        db.session.add(dock)
+        db.session.commit()
 
-def update_docking_status(hubcode):
-    data = request.get_json()
-    docking_status = data.get("docking_status", None)
-
-    if docking_status is None:
-        return jsonify({"error": "Missing docking_status in payload"}), 400
-
-    dock = Dock.query.filter_by(hubcode=hubcode).first()
-    if not dock:
-        return jsonify({"error": "Dock not found"}), 404
-
-    dock.docking_status = docking_status
-    db.session.commit()
-    return jsonify(dock.to_dict()), 200
+        return {"message": "Dock added successfully"}, 201
