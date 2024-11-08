@@ -19,3 +19,10 @@ class DockResource(Resource):
         db.session.commit()
 
         return {"message": "Dock added successfully"}, 201
+
+    def get(self):
+        """Get details of all docks"""
+        docks = Dock.query.all()
+        result = [{"hubcode": dock.hubcode, "dock_no": dock.dock_no, "docking_status": dock.docking_status} for dock in
+                  docks]
+        return {"docks": result}, 200
