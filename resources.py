@@ -1,7 +1,7 @@
-from flask_restful import Resource
+from flask_restful import Resource, reqparse
 from app import db
 from models import Dock
-from flask import request,jsonify
+from flask import request
 
 class DockResource(Resource):
     def post(self):
@@ -27,19 +27,41 @@ class DockResource(Resource):
                   docks]
         return {"docks": result}, 200
 
-    class DockStatusResource(Resource):
-        def patch(self, dock_no):
-            """Update the docking_status of a dock by its dock_no"""
-            parser = reqparse.RequestParser()
-            parser.add_argument('docking_status', type=bool, required=True, help="docking_status is required")
-            args = parser.parse_args()
 
-            dock = Dock.query.filter_by(dock_no=dock_no).first()
-            if not dock:
-                return {"message": f"Dock with dock_no '{dock_no}' not found."}, 404
+class DockStatusResource(Resource):
+    def get(self, hubcode, dock_no):
+        """Get the docking status for a specific dock"""
+        dock = Dock.query.filter_by(hubcode=hubcode, dock_no=dock_no).first()
 
-            dock.docking_status = args['docking_status']
-            db.session.commit()
+        if dock:
+            return {'dock_no': dock.dock_no, 'hubcode': dock.hubcode, 'docking_status': dock.docking_status}, 200
+        else:
+            return {'message': 'Dock not found'}, 404
 
-            return {"message": f"Docking status updated for dock_no '{dock_no}'.",
-                    "docking_status": dock.docking_status}, 200
+    def put(self):
+        """Update the docking status for a specific dock using payload"""
+        # Get data from the request payload
+        data = request.get_json()
+
+        # Extract values from the JSON payload
+        hubcode = data.get('hubcode')
+        dock_no = data.get('dock_no')
+        docking_status = data.get('docking_status')
+
+        # Ensure that all necessary data is provided
+        if not hubcode or not dock_no or docking_status is None:
+            return {'message': 'hubcode, dock_no, and docking_status are required'}, 400
+
+        # Find the dock entry based on hubcode and dock_no
+        dock = Dock.query.filter_by(hubcode=hubcode, dock_no=dock_no).first()
+
+        if not dock:
+            return {'message': 'Dock not found'}, 404
+
+        # Update the docking status
+        dock.docking_status = docking_status
+
+        # Commit changes to the database
+        db.session.commit()
+
+        return {'message': f'Docking status for dock {dock_no} at hub {hubcode} updated to {docking_status}'}, 200
