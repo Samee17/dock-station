@@ -14,3 +14,6 @@ def initialize_routes(app):
     api.add_resource(DockResource, '/add_dock', endpoint='add_dock')
     # Register DockResource for both POST and GET requests on /dock with a custom endpoint
     api.add_resource(DockResource, '/dock', endpoint='dock')
+    # Register DockStatusResource for PATCH request on /dock_status/<dock_no>
+    api.add_resource(DockStatusResource, '/dock_status/<string:dock_no>', endpoint='dock_status')
+
