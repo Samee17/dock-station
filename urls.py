@@ -1,6 +1,6 @@
 from flask import Blueprint
 from flask_restful import Api
-from resources import DockResource
+from resources import DockResource, DockStatusResource
 
 # Initialize Blueprint and API
 main_bp = Blueprint('main', __name__)
